@@ -1,0 +1,19 @@
+Q:Block
+Down:Down
+W:Flip Stance
+Left:Left
+Right:Right
+E:Tag
+A:Throw
+Up:Up
+S:[BK]
+D:[BP]
+Z:[FK]
+X:[FP]
+
+[BP]:Claw Slam (Freddy krueger)
+[BP]:Knockdown (Sonya)
+[BP]:Fist of Death (Liu-Kang)
+[BP],[FP]:Saibot Blast (Noob Saibot)
+[BP],[FP]:Active Duty (Jax)
+Left,[BK]:Reverse Kick (Pacman)
