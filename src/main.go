@@ -6,6 +6,7 @@ import (
 	"ft_ality/src/lib"
 	"ft_ality/src/lib/parsing"
 	"os"
+	"strings"
 
 	"github.com/benbjohnson/immutable"
 	"github.com/fatih/color"
@@ -25,27 +26,36 @@ func check(e error) {
 func try(
 	actionsMap *immutable.Map[string, string],
 	comboMap *immutable.Map[string, []string],
+	comboSet immutable.Set[string],
 	currentCombo string,
+	layer int,
 ) {
 	fmt.Printf("\r%s", currentCombo)
 	// DISPLAY THE CURRENT COMBO IF EXIST
 	combo, comboFound := comboMap.Get(currentCombo)
 	if comboFound == true {
-		print("\n\n")
-		color.Red("COMBO !!!")
-		fmt.Printf("%s\n", currentCombo)
+		fmt.Printf("\r%s\r", strings.Repeat(" ", len(currentCombo)))
+		color.Red("🔥 COMBO !!!")
 		println(lib.StringsToString(combo, "", "\n"))
 		print("\n")
+		fmt.Printf("%s", currentCombo)
+	}
+	if parsing.TestComboEnded(currentCombo, *comboSet.Iterator()) == false {
+		if layer == 0 {
+			print(" 👉 (no combo found)")
+		} else {
+			print(" ⬇️  (combo finished)")
+		}
+		print("\n\n")
+		return
 	}
 	for {
 		event := sdl.PollEvent()
 		if event != nil && event.GetType() == sdl.KEYDOWN {
-			keyEvent := event.(*sdl.KeyboardEvent)
-			key := sdl.GetKeyName(keyEvent.Keysym.Sym)
-			// LOOKING FOR
+			key := sdl.GetKeyName((event.(*sdl.KeyboardEvent).Keysym.Sym))
 			action, actionFound := actionsMap.Get(key)
 			if actionFound == true {
-				try(actionsMap, comboMap, currentCombo+action)
+				try(actionsMap, comboMap, comboSet, currentCombo+action, layer+1)
 			}
 			break
 		}
@@ -55,17 +65,15 @@ func try(
 func run(
 	actionsMap *immutable.Map[string, string],
 	comboMap *immutable.Map[string, []string],
-	currentCombo string,
+	comboSet immutable.Set[string],
 ) {
 	for {
 		event := sdl.PollEvent()
 		if event != nil && event.GetType() == sdl.KEYDOWN {
-			keyEvent := event.(*sdl.KeyboardEvent)
-			key := sdl.GetKeyName(keyEvent.Keysym.Sym)
+			key := sdl.GetKeyName((event.(*sdl.KeyboardEvent).Keysym.Sym))
 			action, actionFound := actionsMap.Get(key)
 			if actionFound == true {
-				try(actionsMap, comboMap, currentCombo+action)
-				println()
+				try(actionsMap, comboMap, comboSet, action, 0)
 			}
 		}
 	}
@@ -85,9 +93,10 @@ func ftAlity(gramFilePath string) {
 		)
 		// PARSE THE COMBO LIST
 		println("\nCombos:")
-		comboMap := parsing.ReadAndParseCombos(
+		comboMap, comboSet := parsing.ReadAndParseCombos(
 			fileScanner,
 			immutable.NewMap[string, []string](nil), actionNames,
+			immutable.NewSet[string](nil),
 		)
 		// SDL INIT
 		if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
@@ -95,7 +104,7 @@ func ftAlity(gramFilePath string) {
 		}
 		defer sdl.Quit()
 		println("----------------------\n")
-		run(actionsMap, comboMap, "")
+		run(actionsMap, comboMap, comboSet)
 		println("End of the training...")
 	default:
 		panic(err)

@@ -9,17 +9,19 @@ import (
 	"github.com/benbjohnson/immutable"
 )
 
+// RETURNS Map[mergedActionNames, combo messages]
 func ReadAndParseCombos(
 	fileScanner *bufio.Scanner,
 	currMap *immutable.Map[string, []string],
 	actionNames []string,
-) *immutable.Map[string, []string] {
+	comboSet immutable.Set[string],
+) (*immutable.Map[string, []string], immutable.Set[string]) {
 	fileScanner.Scan()
 	currLine := fileScanner.Text()
 	if len(currLine) == 0 && currMap.Len() == 0 {
 		panic("No combo list found")
 	} else if len(currLine) == 0 {
-		return currMap
+		return (currMap), (comboSet)
 	}
 	lineSplitted := strings.Split(currLine, ":")
 	if len(lineSplitted) != 2 {
@@ -43,12 +45,14 @@ func ReadAndParseCombos(
 				),
 			),
 			actionNames,
+			comboSet.Add(combosMerged),
 		)
 	} else {
 		return ReadAndParseCombos(
 			fileScanner,
 			currMap.Set(combosMerged, []string{lineSplitted[1]}),
 			actionNames,
+			comboSet.Add(combosMerged),
 		)
 	}
 }

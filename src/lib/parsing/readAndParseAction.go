@@ -11,6 +11,7 @@ import (
 	"github.com/benbjohnson/immutable"
 )
 
+// RETURNS Map[keyboard key:action name], actionNames
 func ReadAndParseAction(
 	fileScanner *bufio.Scanner,
 	currMap *immutable.Map[string, string],
