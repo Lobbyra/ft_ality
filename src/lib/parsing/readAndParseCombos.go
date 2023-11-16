@@ -2,6 +2,7 @@ package parsing
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"ft_ality/src/lib"
 	"strings"
@@ -9,29 +10,58 @@ import (
 	"github.com/benbjohnson/immutable"
 )
 
+func combosParseErrorOverloading(msg string) error {
+	finalMsg := "Combos parsing : " + msg
+	return errors.New(finalMsg)
+}
+
+func logComboRead(combos []string, comboSentence string) {
+	println(
+		fmt.Sprintf(
+			"%s -> %s",
+			lib.StringsToString(combos, "", ","),
+			comboSentence,
+		),
+	)
+}
+
 // RETURNS Map[mergedActionNames, combo messages]
 func ReadAndParseCombos(
 	fileScanner *bufio.Scanner,
 	currMap *immutable.Map[string, []string],
 	actionNames []string,
 	comboSet immutable.Set[string],
-) (*immutable.Map[string, []string], immutable.Set[string]) {
+) (*immutable.Map[string, []string], immutable.Set[string], error) {
+	// READ A FILE LINE
 	fileScanner.Scan()
 	currLine := fileScanner.Text()
+	// NO COMBO TEST
 	if len(currLine) == 0 && currMap.Len() == 0 {
-		panic("No combo list found")
-	} else if len(currLine) == 0 {
-		return (currMap), (comboSet)
+		return (nil), (comboSet), (combosParseErrorOverloading(
+			"No combo list found"))
 	}
+	// END CONDITION
+	if len(currLine) == 0 {
+		return (currMap), (comboSet), (nil)
+	}
+	// TEST THE LINE FORMAT
 	lineSplitted := strings.Split(currLine, ":")
 	if len(lineSplitted) != 2 {
-		panic(fmt.Sprintf("Line : [%s] : Bad format (expected: [action list]:[combo name])", currLine))
+		return (nil), (comboSet), (combosParseErrorOverloading(fmt.Sprintf(
+			"Line : [%s] : Bad format (expected: [action list]:[combo name])",
+			currLine,
+		)))
 	}
+	// TEST IF ALL ACTIONS IN COMBO EXISTS
 	combosSplited := strings.Split(lineSplitted[0], ",")
 	if checkActionsExistence(combosSplited, actionNames) == false {
-		panic(fmt.Sprintf("Unknown action in [%s]", currLine))
+		return (nil), (comboSet), (combosParseErrorOverloading(fmt.Sprintf(
+			"Unknown action in [%s]",
+			currLine,
+		)))
 	}
-	println(fmt.Sprintf("%s -> %s", lib.StringsToString(combosSplited, "", ","), lineSplitted[1]))
+	// PRINTING CURRENT COMBO LINE IN HUMAN FORM
+	logComboRead(combosSplited, lineSplitted[1])
 	combosMerged := lib.StringsToString(combosSplited, "", "")
 	currCombos, found := currMap.Get(combosMerged)
 	if found == true {
