@@ -1,7 +1,8 @@
 NAME = "ft_ality"
+UNAME := $(shell uname -s)
 
-$(NAME) :
-	go build -o $(NAME) src/main.go
+$(NAME):
+	@NAME=$(NAME) bash ./scripts/build.sh
 
-clean :
+clean:
 	rm -f $(NAME)
