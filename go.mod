@@ -1,6 +1,6 @@
 module ft_ality
 
-go 1.21.4
+go 1.23
 
 require (
 	github.com/benbjohnson/immutable v0.4.3
